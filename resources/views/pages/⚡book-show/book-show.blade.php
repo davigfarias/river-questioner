@@ -24,7 +24,9 @@
 
             <div class="flex gap-2 mt-3">
                 <flux:button size="sm" variant="ghost" icon="pencil" wire:click="openEditBook" class="label-sm">Editar</flux:button>
-                <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteBook" wire:confirm="Excluir este livro e todos os seus capítulos e perguntas?" class="label-sm">Excluir</flux:button>
+                <flux:modal.trigger name="delete-book">
+                    <flux:button size="sm" variant="ghost" icon="trash" class="label-sm">Excluir</flux:button>
+                </flux:modal.trigger>
             </div>
         </div>
     </div>
@@ -54,7 +56,9 @@
                                 Estudar
                             </flux:button>
                             <flux:button size="sm" variant="ghost" icon="pencil" wire:click="openEditChapter({{ $chapter->id }})" />
-                            <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteChapter({{ $chapter->id }})" wire:confirm="Excluir este capítulo e todas as suas perguntas?" />
+                            <flux:modal.trigger name="delete-chapter-{{ $chapter->id }}">
+                                <flux:button size="sm" variant="ghost" icon="trash" />
+                            </flux:modal.trigger>
                         </div>
                     </summary>
 
@@ -65,9 +69,27 @@
 
                                 <div class="flex items-center gap-1 shrink-0">
                                     <flux:button size="sm" variant="ghost" icon="pencil" wire:click="openEditQuestion({{ $question->id }})" />
-                                    <flux:button size="sm" variant="ghost" icon="trash" wire:click="deleteQuestion({{ $question->id }})" wire:confirm="Excluir esta pergunta?" />
+                                    <flux:modal.trigger name="delete-question-{{ $question->id }}">
+                                        <flux:button size="sm" variant="ghost" icon="trash" />
+                                    </flux:modal.trigger>
                                 </div>
                             </div>
+
+                            <flux:modal name="delete-question-{{ $question->id }}" class="modal-narrow" wire:key="delete-question-modal-{{ $question->id }}">
+                                <div class="space-y-6">
+                                    <div>
+                                        <flux:heading class="heading-md">Excluir pergunta?</flux:heading>
+                                        <flux:subheading class="text-muted-sm">Esta ação não pode ser desfeita.</flux:subheading>
+                                    </div>
+
+                                    <div class="modal-actions">
+                                        <flux:modal.close>
+                                            <flux:button variant="ghost">Cancelar</flux:button>
+                                        </flux:modal.close>
+                                        <flux:button variant="danger" wire:click="deleteQuestion({{ $question->id }})">Excluir</flux:button>
+                                    </div>
+                                </div>
+                            </flux:modal>
                         @empty
                             <flux:text class="text-muted-sm">Nenhuma pergunta neste capítulo ainda.</flux:text>
                         @endforelse
@@ -77,10 +99,42 @@
                         </flux:button>
                     </div>
                 </details>
+
+                <flux:modal name="delete-chapter-{{ $chapter->id }}" class="modal-narrow" wire:key="delete-chapter-modal-{{ $chapter->id }}">
+                    <div class="space-y-6">
+                        <div>
+                            <flux:heading class="heading-md">Excluir capítulo?</flux:heading>
+                            <flux:subheading class="text-muted-sm">Excluir "{{ $chapter->title }}" e todas as suas perguntas? Esta ação não pode ser desfeita.</flux:subheading>
+                        </div>
+
+                        <div class="modal-actions">
+                            <flux:modal.close>
+                                <flux:button variant="ghost">Cancelar</flux:button>
+                            </flux:modal.close>
+                            <flux:button variant="danger" wire:click="deleteChapter({{ $chapter->id }})">Excluir</flux:button>
+                        </div>
+                    </div>
+                </flux:modal>
             @endforeach
         </div>
     @endif
 </main>
+
+<flux:modal name="delete-book" class="modal-narrow">
+    <div class="space-y-6">
+        <div>
+            <flux:heading class="heading-md">Excluir livro?</flux:heading>
+            <flux:subheading class="text-muted-sm">Excluir "{{ $book->title }}" e todos os seus capítulos e perguntas? Esta ação não pode ser desfeita.</flux:subheading>
+        </div>
+
+        <div class="modal-actions">
+            <flux:modal.close>
+                <flux:button variant="ghost">Cancelar</flux:button>
+            </flux:modal.close>
+            <flux:button variant="danger" wire:click="deleteBook">Excluir</flux:button>
+        </div>
+    </div>
+</flux:modal>
 
 <flux:modal name="edit-book" class="modal-narrow">
     <form wire:submit="saveBook" class="space-y-6">
