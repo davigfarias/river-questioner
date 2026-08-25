@@ -1,0 +1,211 @@
+@import 'tailwindcss';
+@import '../../vendor/livewire/flux/dist/flux.css';
+
+@source '../views';
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/livewire/flux-pro/stubs/**/*.blade.php';
+@source '../../vendor/livewire/flux/stubs/**/*.blade.php';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Colors and font follow the "Mocha Studio" palette shared with the
+ * sibling river-flasher app, so the two look like one suite. The type
+ * scale/spacing tokens still mirror the "Macchiato Soft-Tech" mockups in
+ * ~/Downloads/stitch_recall_proximity_tracker (DESIGN.md + code.html per
+ * screen) so blade files can reuse its utility class names verbatim
+ * (e.g. `bg-surface-container`, `text-headline-lg`, `p-container-padding-mobile`).
+ */
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-heading: 'Inter', ui-sans-serif, system-ui, sans-serif;
+    --font-mono: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+    /* Mocha Studio — surfaces (shared with river-flasher) */
+    --color-surface: #111222;
+    --color-surface-dim: #111222;
+    --color-surface-bright: #37384a;
+    --color-surface-container-lowest: #0b0d1d;
+    --color-surface-container-low: #191a2b;
+    --color-surface-container: #1d1e2f;
+    --color-surface-container-high: #27293a;
+    --color-surface-container-highest: #323345;
+    --color-surface-variant: #323345;
+    --color-on-surface: #e1e0f8;
+    --color-on-surface-variant: #cdc3d1;
+    --color-inverse-surface: #e1e0f8;
+    --color-inverse-on-surface: #27293a;
+    --color-outline: #968e9a;
+    --color-outline-variant: #4a444f;
+
+    /* Mocha Studio — primary (lilac) */
+    --color-primary: #e2c7ff;
+    --color-on-primary: #3f1e66;
+    --color-primary-container: #cba6f7;
+    --color-on-primary-container: #57377f;
+    --color-inverse-primary: #3f1e66;
+    --color-primary-fixed: #e2c7ff;
+    --color-primary-fixed-dim: #cba6f7;
+    --color-on-primary-fixed: #3f1e66;
+    --color-on-primary-fixed-variant: #57377f;
+
+    /* Mocha Studio — secondary (periwinkle) */
+    --color-secondary: #bac3ff;
+    --color-on-secondary: #1f2452;
+    --color-secondary-container: #3b457c;
+    --color-on-secondary-container: #abb5f4;
+    --color-secondary-fixed: #bac3ff;
+    --color-secondary-fixed-dim: #abb5f4;
+    --color-on-secondary-fixed: #1f2452;
+    --color-on-secondary-fixed-variant: #3b457c;
+
+    /* Mocha Studio — tertiary (sky blue) */
+    --color-tertiary: #bad2ff;
+    --color-on-tertiary: #0e4786;
+    --color-tertiary-container: #8cb7fd;
+    --color-on-tertiary-container: #0e4786;
+    --color-tertiary-fixed: #bad2ff;
+    --color-tertiary-fixed-dim: #8cb7fd;
+    --color-on-tertiary-fixed: #0e4786;
+    --color-on-tertiary-fixed-variant: #0e4786;
+
+    --color-error: #ffb4ab;
+    --color-on-error: #690005;
+    --color-error-container: #93000a;
+    --color-on-error-container: #ffdad6;
+
+    --color-background: #111222;
+    --color-on-background: #e1e0f8;
+
+    --text-headline-xl: 40px;
+    --text-headline-xl--line-height: 48px;
+    --text-headline-xl--font-weight: 700;
+    --text-headline-xl--letter-spacing: -0.02em;
+    --text-headline-lg: 32px;
+    --text-headline-lg--line-height: 40px;
+    --text-headline-lg--font-weight: 600;
+    --text-headline-lg--letter-spacing: -0.01em;
+    --text-headline-lg-mobile: 24px;
+    --text-headline-lg-mobile--line-height: 32px;
+    --text-headline-lg-mobile--font-weight: 600;
+    --text-headline-md: 24px;
+    --text-headline-md--line-height: 32px;
+    --text-headline-md--font-weight: 600;
+    --text-body-lg: 18px;
+    --text-body-lg--line-height: 28px;
+    --text-body-md: 16px;
+    --text-body-md--line-height: 24px;
+    --text-body-sm: 14px;
+    --text-body-sm--line-height: 20px;
+    --text-label-md: 14px;
+    --text-label-md--line-height: 20px;
+    --text-label-md--font-weight: 500;
+    --text-label-sm: 12px;
+    --text-label-sm--line-height: 16px;
+    --text-label-sm--font-weight: 500;
+
+    --spacing-base-unit: 8px;
+    --spacing-container-padding-mobile: 16px;
+    --spacing-container-padding-desktop: 32px;
+    --spacing-gutter: 24px;
+    --spacing-stack-gap: 16px;
+    --spacing-component-gap: 8px;
+}
+
+/* Flux ships several components (modals, navlists, etc.) with hardcoded
+   dark:zinc-* utility classes. Remapping the zinc scale here — the same
+   technique river-flasher uses — keeps those components on the Mocha
+   Studio palette instead of generic Tailwind gray. */
+@layer theme {
+    .dark {
+        --color-zinc-50: #e1e0f8;
+        --color-zinc-100: #e1e0f8;
+        --color-zinc-200: #cdc3d1;
+        --color-zinc-300: #cdc3d1;
+        --color-zinc-400: #968e9a;
+        --color-zinc-500: #968e9a;
+        --color-zinc-600: #4a444f;
+        --color-zinc-700: #323345;
+        --color-zinc-800: #27293a;
+        --color-zinc-900: #1d1e2f;
+        --color-zinc-950: #111222;
+
+        --color-accent: #cba6f7;
+        --color-accent-content: #e2c7ff;
+        --color-accent-foreground: #3f1e66;
+    }
+}
+
+@layer base {
+
+    *,
+    ::after,
+    ::before,
+    ::backdrop,
+    ::file-selector-button {
+        border-color: var(--color-outline-variant, currentColor);
+    }
+
+    body {
+        background-color: var(--color-background);
+        color: var(--color-on-background);
+    }
+}
+
+/* Repeated utility combinations pulled out of the blade views — see
+   .ai/rules/resources.md for the naming/usage note. */
+@layer components {
+    .breadcrumb-item {
+        @apply font-mono text-label-sm text-on-surface-variant!;
+    }
+
+    .breadcrumb-item-current {
+        @apply font-mono text-label-sm text-primary!;
+    }
+
+    .label-sm {
+        @apply font-mono text-label-sm;
+    }
+
+    .label-md {
+        @apply font-mono text-label-md;
+    }
+
+    .heading-md {
+        @apply font-heading text-headline-md text-on-surface;
+    }
+
+    .text-subtitle {
+        @apply font-sans text-body-lg text-on-surface-variant;
+    }
+
+    .text-muted-sm {
+        @apply font-sans text-body-sm text-on-surface-variant;
+    }
+
+    .modal-narrow {
+        @apply w-full md:w-96;
+    }
+
+    .modal-actions {
+        @apply flex justify-end gap-3;
+    }
+
+    .panel-muted {
+        @apply bg-surface-container-low rounded-lg border border-outline-variant/50 p-4 relative overflow-hidden;
+    }
+}
+
+[data-flux-field]:not(ui-radio, ui-checkbox) {
+    @apply grid gap-2;
+}
+
+[data-flux-label] {
+    @apply  !mb-0 !leading-tight;
+}
+
+input:focus[data-flux-control],
+textarea:focus[data-flux-control],
+select:focus[data-flux-control] {
+    @apply outline-hidden ring-2 ring-accent ring-offset-2 ring-offset-accent-foreground;
+}

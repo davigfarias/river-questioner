@@ -1,0 +1,34 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Actions;
+
+use App\DTO\AccessTokenDTO;
+use App\Models\AccessToken;
+use App\Support\Outcome;
+use Illuminate\Support\Facades\Log;
+
+final readonly class ValidateAccessToken
+{
+    public function handle(string $plainText): Outcome
+    {
+        try {
+            $token = AccessToken::where('token', hash('sha256', $plainText))
+                ->active()
+                ->first();
+
+            if (! $token) {
+                return Outcome::failure(message: 'Código inválido.');
+            }
+
+            $token->update(['last_used_at' => now()]);
+
+            return Outcome::success(data: AccessTokenDTO::fromModel($token));
+        } catch (\Throwable $e) {
+            Log::error(self::class.': '.$e->getMessage());
+
+            return Outcome::failure(message: 'Não foi possível validar o código.');
+        }
+    }
+}
