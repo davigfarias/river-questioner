@@ -55,6 +55,9 @@
                             <flux:button size="sm" variant="primary" icon="play" :disabled="$chapter->questions->isEmpty()" :href="route('study', $chapter)" wire:navigate class="label-sm">
                                 Estudar
                             </flux:button>
+                            <flux:button size="sm" variant="ghost" icon="book-open" :disabled="$chapter->questions->isEmpty()" :href="route('study.review', $chapter)" wire:navigate class="label-sm">
+                                Revisão
+                            </flux:button>
                             <flux:button size="sm" variant="ghost" icon="pencil" wire:click="openEditChapter({{ $chapter->id }})" />
                             <flux:modal.trigger name="delete-chapter-{{ $chapter->id }}">
                                 <flux:button size="sm" variant="ghost" icon="trash" />
