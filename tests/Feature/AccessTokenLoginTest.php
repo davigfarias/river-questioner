@@ -78,6 +78,27 @@ class AccessTokenLoginTest extends TestCase
         $this->assertNull(session('access_token_id'));
     }
 
+    public function test_the_login_throttle_limit_comes_from_config(): void
+    {
+        config(['access_tokens.login.max_attempts' => 2]);
+        AccessToken::factory()->create(['token' => hash('sha256', '1234')]);
+
+        RateLimiter::clear('access-token-login:127.0.0.1');
+
+        for ($i = 0; $i < 2; $i++) {
+            Livewire::test('pages::auth-code')
+                ->set('code', '9999')
+                ->call('joinSession');
+        }
+
+        Livewire::test('pages::auth-code')
+            ->set('code', '1234')
+            ->call('joinSession')
+            ->assertNoRedirect();
+
+        $this->assertNull(session('access_token_id'));
+    }
+
     public function test_an_already_authenticated_visitor_is_redirected_away_from_login(): void
     {
         $token = AccessToken::factory()->create();

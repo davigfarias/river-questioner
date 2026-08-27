@@ -5,22 +5,23 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\Support\{Outcome, PortugueseStopwords, TextNormalizer};
+use Illuminate\Container\Attributes\Config;
 use Illuminate\Support\Facades\Log;
 
 final readonly class SelectClozeBlanks
 {
-    private const BLANK_RATIO = 0.30;
-
-    private const MIN_BLANKS = 1;
-
-    private const MIN_WORD_LENGTH = 2;
+    public function __construct(
+        #[Config('cloze.blank_ratio')] private float $blankRatio = 0.30,
+        #[Config('cloze.min_blanks')] private int $minBlanks = 1,
+        #[Config('cloze.min_word_length')] private int $minWordLength = 2,
+    ) {}
 
     /**
      * Pick which word indices to turn into cloze blanks. Eligible words are
      * long enough, non-numeric, and not Portuguese function words. Roughly
-     * BLANK_RATIO of the eligible words are chosen at random (at least
-     * MIN_BLANKS). Returns a sorted list of word indices, or an empty list
-     * when nothing is eligible.
+     * `cloze.blank_ratio` of the eligible words are chosen at random (at
+     * least `cloze.min_blanks`). Returns a sorted list of word indices, or an
+     * empty list when nothing is eligible.
      *
      * @param  array<int, array{word: bool, text: string, index: int|null}>  $tokens
      * @return Outcome data: array<int, int>
@@ -28,7 +29,7 @@ final readonly class SelectClozeBlanks
     public function handle(array $tokens, ?float $ratio = null): Outcome
     {
         try {
-            $ratio ??= self::BLANK_RATIO;
+            $ratio ??= $this->blankRatio;
 
             $eligible = [];
 
@@ -39,7 +40,7 @@ final readonly class SelectClozeBlanks
 
                 $folded = TextNormalizer::fold($token['text']);
 
-                if (mb_strlen($folded) < self::MIN_WORD_LENGTH) {
+                if (mb_strlen($folded) < $this->minWordLength) {
                     continue;
                 }
 
@@ -60,7 +61,7 @@ final readonly class SelectClozeBlanks
 
             $count = min(
                 count($eligible),
-                max(self::MIN_BLANKS, (int) round(count($eligible) * $ratio)),
+                max($this->minBlanks, (int) round(count($eligible) * $ratio)),
             );
 
             shuffle($eligible);

@@ -45,6 +45,15 @@ class SelectClozeBlanksTest extends TestCase
         $this->assertCount(5, (new SelectClozeBlanks)->handle($tokens, 0.50)->data);
     }
 
+    public function test_the_default_ratio_comes_from_config(): void
+    {
+        config(['cloze.blank_ratio' => 0.50]);
+
+        $tokens = $this->tokenize('alfa bravo charlie delta echo foxtrot golf hotel india juliet');
+
+        $this->assertCount(5, app(SelectClozeBlanks::class)->handle($tokens)->data);
+    }
+
     public function test_it_always_selects_at_least_one_blank_when_something_is_eligible(): void
     {
         $tokens = $this->tokenize('alfa bravo charlie');

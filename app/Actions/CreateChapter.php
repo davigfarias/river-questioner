@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace App\Actions;
 
 use App\DTO\ChapterData;
-use App\Models\{Book};
+use App\Models\Book;
 use App\Support\Outcome;
 use Illuminate\Support\Facades\Log;
 
