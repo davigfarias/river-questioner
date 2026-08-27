@@ -1,5 +1,12 @@
 <x-slot:breadcrumb>
-    <flux:breadcrumbs>
+    <div class="flex sm:hidden items-center gap-2 min-w-0">
+        <flux:button :href="route('books.show', $bookId)" wire:navigate variant="ghost" size="sm" icon="chevron-left" class="label-sm shrink-0">
+            Voltar
+        </flux:button>
+        <span class="font-mono text-label-sm text-primary truncate min-w-0">{{ $chapterTitle }}</span>
+    </div>
+
+    <flux:breadcrumbs class="hidden sm:flex">
         <flux:breadcrumbs.item :href="route('books')" class="breadcrumb-item">Livros</flux:breadcrumbs.item>
         <flux:breadcrumbs.item :href="route('books.show', $bookId)" class="breadcrumb-item">{{ $bookTitle }}</flux:breadcrumbs.item>
         <flux:breadcrumbs.item class="breadcrumb-item-current">{{ $chapterTitle }}</flux:breadcrumbs.item>
@@ -36,7 +43,7 @@
         </div>
 
         <div class="flex flex-col lg:flex-row gap-8 items-start">
-            <div class="w-full lg:w-2/3 flex flex-col gap-6">
+            <div @class(['w-full flex flex-col gap-6', 'lg:w-2/3' => ! $this->isClozeQuestion])>
                 <div class="bg-surface-container-high rounded-xl p-8 relative overflow-hidden border border-outline-variant shadow-lg">
                     <div class="absolute left-0 top-0 bottom-0 w-1.5 bg-secondary"></div>
 
@@ -53,23 +60,43 @@
                     </div>
                 </div>
 
-                <form wire:submit="submit" class="flex flex-col gap-3">
-                    <label class="font-mono text-label-md text-on-surface-variant" for="answer-input">Sua resposta</label>
-                    <flux:textarea wire:model="answer" id="answer-input" rows="10" placeholder="Comece a digitar sua resposta aqui..." class="font-sans text-body-md" />
-                    <flux:error name="answer" />
+                @if ($this->isClozeQuestion)
+                    <form wire:submit="submit" class="flex flex-col gap-3">
+                        <label class="font-mono text-label-md text-on-surface-variant">Complete as lacunas</label>
+                        <div class="bg-surface-container-high rounded-xl p-6 border border-outline-variant">
+                            <p class="font-sans text-body-md leading-loose text-on-surface">@foreach ($this->clozeSegments as $seg)@if ($seg['blank'])<input type="text" wire:model="clozeInputs.{{ $seg['index'] }}" class="cloze-blank" autocomplete="off" autocapitalize="off" spellcheck="false" />@else{{ $seg['text'] }}@endif@endforeach</p>
+                        </div>
 
-                    <div class="flex items-center justify-between mt-4 border-t border-outline-variant pt-6">
-                        <flux:button type="button" variant="ghost" icon="forward" wire:click="skip" class="label-md">
-                            Pular por agora
-                        </flux:button>
+                        <div class="flex items-center justify-between mt-4 border-t border-outline-variant pt-6">
+                            <flux:button type="button" variant="ghost" icon="forward" wire:click="skip" class="label-md">
+                                Pular por agora
+                            </flux:button>
 
-                        <flux:button type="submit" variant="primary" icon:trailing="paper-airplane" class="label-md">
-                            Enviar resposta
-                        </flux:button>
-                    </div>
-                </form>
+                            <flux:button type="submit" variant="primary" icon:trailing="paper-airplane" class="label-md">
+                                Enviar resposta
+                            </flux:button>
+                        </div>
+                    </form>
+                @else
+                    <form wire:submit="submit" class="flex flex-col gap-3">
+                        <label class="font-mono text-label-md text-on-surface-variant" for="answer-input">Sua resposta</label>
+                        <flux:textarea wire:model="answer" id="answer-input" rows="10" placeholder="Comece a digitar sua resposta aqui..." class="font-sans text-body-md" />
+                        <flux:error name="answer" />
+
+                        <div class="flex items-center justify-between mt-4 border-t border-outline-variant pt-6">
+                            <flux:button type="button" variant="ghost" icon="forward" wire:click="skip" class="label-md">
+                                Pular por agora
+                            </flux:button>
+
+                            <flux:button type="submit" variant="primary" icon:trailing="paper-airplane" class="label-md">
+                                Enviar resposta
+                            </flux:button>
+                        </div>
+                    </form>
+                @endif
             </div>
 
+            @unless ($this->isClozeQuestion)
             <aside class="w-full lg:w-1/3">
                 <div class="bg-surface rounded-xl p-5 border border-outline-variant">
                     <h3 class="font-mono text-label-md text-on-surface flex items-center gap-2 mb-3 border-b border-outline-variant pb-2">
@@ -100,6 +127,7 @@
                     @endif
                 </div>
             </aside>
+            @endunless
         </div>
     @else
         <div class="text-center flex flex-col items-center gap-4 py-16">

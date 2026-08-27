@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Actions\Orchestrators;
 
-use App\Actions\{BuildAnswerDiffSegments, FindLatestAttemptsForChapter, NormalizeAnswerText};
+use App\Actions\{BuildAnswerDiffSegments, BuildClozeResultSegments, FindLatestAttemptsForChapter, NormalizeAnswerText};
 use App\DTO\{ChapterResultsData, QuestionResultRow};
 use App\Models\{AccessToken, Chapter, QuestionAttempt};
 use App\Support\Outcome;
@@ -16,6 +16,7 @@ final readonly class BuildChapterResultsOrchestrator
         private FindLatestAttemptsForChapter $findLatestAttemptsForChapter,
         private NormalizeAnswerText $normalizeAnswerText,
         private BuildAnswerDiffSegments $buildAnswerDiffSegments,
+        private BuildClozeResultSegments $buildClozeResultSegments,
     ) {}
 
     public function handle(Chapter $chapter, AccessToken $accessToken): Outcome
@@ -32,8 +33,20 @@ final readonly class BuildChapterResultsOrchestrator
             foreach ($attemptsOutcome->data->values() as $index => $attempt) {
                 /** @var QuestionAttempt $attempt */
                 $answerSegments = [];
+                $clozeSegments = null;
 
-                if (! $attempt->skipped) {
+                if (! $attempt->skipped && $attempt->cloze_blanks !== null) {
+                    $clozeOutcome = $this->buildClozeResultSegments->handle(
+                        $attempt->question->reference_answer,
+                        $attempt->cloze_blanks,
+                    );
+
+                    if (! $clozeOutcome->success) {
+                        return $clozeOutcome;
+                    }
+
+                    $clozeSegments = $clozeOutcome->data;
+                } elseif (! $attempt->skipped) {
                     $referenceOutcome = $this->normalizeAnswerText->handle($attempt->question->reference_answer);
 
                     if (! $referenceOutcome->success) {
@@ -63,6 +76,7 @@ final readonly class BuildChapterResultsOrchestrator
                     score: $attempt->score,
                     skipped: $attempt->skipped,
                     answerSegments: $answerSegments,
+                    clozeSegments: $clozeSegments,
                 );
             }
 

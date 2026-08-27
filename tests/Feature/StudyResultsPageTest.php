@@ -52,6 +52,28 @@ class StudyResultsPageTest extends TestCase
             ->assertSee('Pulada');
     }
 
+    public function test_it_rebuilds_a_cloze_sentence_with_hits_and_misses(): void
+    {
+        $token = AccessToken::factory()->create();
+        $book = Book::factory()->for($token)->create();
+        $chapter = Chapter::factory()->for($book)->create();
+        $question = Question::factory()->for($chapter)->cloze()->create(['prompt' => 'Promessa a Abraão']);
+
+        QuestionAttempt::factory()->for($question)->for($token)->cloze([
+            ['index' => 3, 'expected' => 'aliança', 'given' => 'aliança', 'correct' => true],
+            ['index' => 6, 'expected' => 'Abraão', 'given' => 'promessa', 'correct' => false],
+        ])->create();
+
+        $this->withSession(['access_token_id' => $token->id]);
+
+        Livewire::test('pages::study-results', ['chapter' => $chapter])
+            ->assertSee('Frase')
+            ->assertSee('50% de acertos')
+            ->assertSee('promessa')
+            ->assertSee('Abraão')
+            ->assertDontSee('Resposta padrão');
+    }
+
     public function test_a_chapter_with_no_attempts_shows_an_empty_state(): void
     {
         $token = AccessToken::factory()->create();

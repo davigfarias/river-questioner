@@ -16,6 +16,8 @@ class QuestionForm extends Form
 
     public string $keywords = '';
 
+    public bool $isCloze = false;
+
     /**
      * @return array<string, array<int, mixed>>
      */
@@ -25,6 +27,7 @@ class QuestionForm extends Form
             'prompt' => ['required', 'string', 'max:2000'],
             'referenceAnswer' => ['required', 'string', 'max:5000'],
             'keywords' => ['nullable', 'string', 'max:1000'],
+            'isCloze' => ['boolean'],
         ];
     }
 
@@ -33,6 +36,7 @@ class QuestionForm extends Form
         $this->prompt = $question->prompt;
         $this->referenceAnswer = $question->reference_answer;
         $this->keywords = $question->keywords ?? '';
+        $this->isCloze = $question->is_cloze;
     }
 
     public function toData(): QuestionData
@@ -41,6 +45,7 @@ class QuestionForm extends Form
             prompt: $this->prompt,
             referenceAnswer: $this->referenceAnswer,
             keywords: $this->keywords !== '' ? $this->keywords : null,
+            isCloze: $this->isCloze,
         );
     }
 }

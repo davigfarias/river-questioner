@@ -1,5 +1,12 @@
 <x-slot:breadcrumb>
-    <flux:breadcrumbs>
+    <div class="flex sm:hidden items-center gap-2 min-w-0">
+        <flux:button :href="route('books.show', $bookId)" wire:navigate variant="ghost" size="sm" icon="chevron-left" class="label-sm shrink-0">
+            Voltar
+        </flux:button>
+        <span class="font-mono text-label-sm text-primary truncate min-w-0">{{ $chapterTitle }} · Revisão</span>
+    </div>
+
+    <flux:breadcrumbs class="hidden sm:flex">
         <flux:breadcrumbs.item :href="route('books')" class="breadcrumb-item">Livros</flux:breadcrumbs.item>
         <flux:breadcrumbs.item :href="route('books.show', $bookId)" class="breadcrumb-item">{{ $bookTitle }}</flux:breadcrumbs.item>
         <flux:breadcrumbs.item class="breadcrumb-item-current">{{ $chapterTitle }} · Revisão</flux:breadcrumbs.item>

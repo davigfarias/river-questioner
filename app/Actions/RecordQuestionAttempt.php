@@ -10,7 +10,10 @@ use Illuminate\Support\Facades\Log;
 
 final readonly class RecordQuestionAttempt
 {
-    public function handle(Question $question, AccessToken $accessToken, ?string $answerText, ?int $score, bool $skipped): Outcome
+    /**
+     * @param  array<int, array{index: int, expected: string, given: string, correct: bool}>|null  $clozeBlanks
+     */
+    public function handle(Question $question, AccessToken $accessToken, ?string $answerText, ?int $score, bool $skipped, ?array $clozeBlanks = null): Outcome
     {
         try {
             $attempt = QuestionAttempt::create([
@@ -18,6 +21,7 @@ final readonly class RecordQuestionAttempt
                 'access_token_id' => $accessToken->id,
                 'answer_text' => $answerText,
                 'score' => $score,
+                'cloze_blanks' => $clozeBlanks,
                 'skipped' => $skipped,
             ]);
 

@@ -194,6 +194,12 @@
     .panel-muted {
         @apply bg-surface-container-low rounded-lg border border-outline-variant/50 p-4 relative overflow-hidden;
     }
+
+    /* Inline fill-in-the-blank input for cloze study questions. Fixed width —
+       sizing it to the hidden word's length would leak the answer. */
+    .cloze-blank {
+        @apply inline-block w-28 mx-1 px-1 py-0.5 align-baseline font-mono text-label-md text-on-surface bg-surface-container-high border-b-2 border-primary focus:outline-none focus:border-secondary;
+    }
 }
 
 [data-flux-field]:not(ui-radio, ui-checkbox) {

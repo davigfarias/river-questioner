@@ -97,6 +97,70 @@ class StudyPageTest extends TestCase
             ->assertRedirect(route('study.results', $chapter));
     }
 
+    public function test_a_cloze_question_renders_blank_inputs_and_hides_the_hint_aside(): void
+    {
+        $token = AccessToken::factory()->create();
+        $book = Book::factory()->for($token)->create();
+        $chapter = Chapter::factory()->for($book)->create();
+        Question::factory()->for($chapter)->cloze()->create();
+
+        $this->withSession(['access_token_id' => $token->id]);
+
+        Livewire::test('pages::study', ['chapter' => $chapter])
+            ->assertSee('Complete as lacunas')
+            ->assertSee('cloze-blank', false)
+            ->assertDontSee('Ajuda de estudo');
+    }
+
+    public function test_submitting_cloze_blanks_grades_them_and_advances(): void
+    {
+        $token = AccessToken::factory()->create();
+        $book = Book::factory()->for($token)->create();
+        $chapter = Chapter::factory()->for($book)->create();
+        // reference "Deus fez uma aliança eterna com Abraão", blanks [3, 6].
+        $question = Question::factory()->for($chapter)->cloze()->create();
+
+        $this->withSession(['access_token_id' => $token->id]);
+
+        Livewire::test('pages::study', ['chapter' => $chapter])
+            ->set('clozeInputs.3', 'aliança')
+            ->set('clozeInputs.6', 'Abraão')
+            ->call('submit')
+            ->assertRedirect(route('study.results', $chapter));
+
+        $this->assertDatabaseHas('question_attempts', [
+            'question_id' => $question->id,
+            'access_token_id' => $token->id,
+            'skipped' => false,
+            'score' => 100,
+        ]);
+    }
+
+    public function test_a_cloze_question_without_eligible_words_falls_back_to_free_text(): void
+    {
+        $token = AccessToken::factory()->create();
+        $book = Book::factory()->for($token)->create();
+        $chapter = Chapter::factory()->for($book)->create();
+        $question = Question::factory()->for($chapter)->create([
+            'reference_answer' => 'e o a de',
+            'is_cloze' => true,
+            'cloze_blank_indices' => [],
+        ]);
+
+        $this->withSession(['access_token_id' => $token->id]);
+
+        Livewire::test('pages::study', ['chapter' => $chapter])
+            ->assertSee('Sua resposta')
+            ->assertDontSee('Complete as lacunas')
+            ->set('answer', 'e o a de')
+            ->call('submit');
+
+        $this->assertDatabaseHas('question_attempts', [
+            'question_id' => $question->id,
+            'skipped' => false,
+        ]);
+    }
+
     /**
      * @return array{0: AccessToken, 1: Chapter, 2: Question}
      */

@@ -18,6 +18,7 @@ final readonly class UpdateQuestion
                 'prompt' => $data->prompt,
                 'reference_answer' => $data->referenceAnswer,
                 'keywords' => $data->keywords,
+                'is_cloze' => $data->isCloze,
             ]);
 
             return Outcome::success(message: 'Pergunta atualizada.', data: $question);

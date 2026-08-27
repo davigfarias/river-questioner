@@ -26,7 +26,7 @@ final readonly class Outcome
         return new self(true, $message, $data);
     }
 
-    public static function failure(string|\BackedEnum $message, mixed $data = null): self
+    public static function failure(string|\BackedEnum|null $message = null, mixed $data = null): self
     {
         if ($message instanceof \BackedEnum) {
             $message = $message->value;

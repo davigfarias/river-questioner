@@ -24,7 +24,22 @@ class QuestionFactory extends Factory
             'prompt' => fake()->sentence().'?',
             'reference_answer' => fake()->paragraph(),
             'keywords' => implode(', ', fake()->words(3)),
+            'is_cloze' => false,
+            'cloze_blank_indices' => null,
             'position' => 0,
         ];
+    }
+
+    /**
+     * A cloze question with a deterministic reference answer and blank set so
+     * tests don't depend on the random blank picker.
+     */
+    public function cloze(): static
+    {
+        return $this->state([
+            'reference_answer' => 'Deus fez uma aliança eterna com Abraão',
+            'is_cloze' => true,
+            'cloze_blank_indices' => [3, 6],
+        ]);
     }
 }

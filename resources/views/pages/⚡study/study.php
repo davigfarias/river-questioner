@@ -1,7 +1,7 @@
 <?php
 
-use App\Actions\Orchestrators\{StartStudySessionOrchestrator, SubmitAnswerOrchestrator};
-use App\Actions\RecordQuestionAttempt;
+use App\Actions\Orchestrators\{StartStudySessionOrchestrator, SubmitAnswerOrchestrator, SubmitClozeAnswerOrchestrator};
+use App\Actions\{RecordQuestionAttempt, TokenizeAnswerText};
 use App\Models\{AccessToken, Chapter, Question};
 use Flux\Flux;
 use Livewire\Attributes\{Computed, Layout, Locked, Title};
@@ -30,6 +30,9 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
 
     public string $answer = '';
 
+    /** @var array<int, string> word index => filled value */
+    public array $clozeInputs = [];
+
     public int $hintLevel = 0;
 
     public int $sessionRun = 0;
@@ -55,6 +58,46 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
         return $this->totalQuestions === 0
             ? 100
             : (int) round(($this->index / $this->totalQuestions) * 100);
+    }
+
+    #[Computed]
+    public function isClozeQuestion(): bool
+    {
+        return $this->question !== null
+            && $this->question->is_cloze
+            && ! empty($this->question->cloze_blank_indices);
+    }
+
+    /**
+     * The reference answer split for rendering: blank segments carry the word
+     * index to bind an input to; text segments carry the visible text. Expected
+     * words for blanks are never included, so they never reach the client.
+     *
+     * @return array<int, array{blank: bool, index?: int, text?: string}>
+     */
+    #[Computed]
+    public function clozeSegments(): array
+    {
+        if (! $this->isClozeQuestion()) {
+            return [];
+        }
+
+        $blankIndices = array_flip($this->question->cloze_blank_indices);
+        $tokens = app(TokenizeAnswerText::class)->handle($this->question->reference_answer)->data ?? [];
+
+        $segments = [];
+
+        foreach ($tokens as $token) {
+            if ($token['word'] && isset($blankIndices[$token['index']])) {
+                $segments[] = ['blank' => true, 'index' => $token['index']];
+
+                continue;
+            }
+
+            $segments[] = ['blank' => false, 'text' => $token['text']];
+        }
+
+        return $segments;
     }
 
     /**
@@ -96,10 +139,8 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
         }
     }
 
-    public function submit(SubmitAnswerOrchestrator $orchestrator): void
+    public function submit(SubmitAnswerOrchestrator $orchestrator, SubmitClozeAnswerOrchestrator $clozeOrchestrator): void
     {
-        $this->validate(['answer' => ['required', 'string']]);
-
         $question = $this->question;
 
         if ($question === null) {
@@ -108,7 +149,13 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
 
         $accessToken = AccessToken::findOrFail(session('access_token_id'));
 
-        $outcome = $orchestrator->handle($question, $accessToken, $this->answer);
+        if ($this->isClozeQuestion()) {
+            $outcome = $clozeOrchestrator->handle($question, $accessToken, $this->clozeInputs);
+        } else {
+            $this->validate(['answer' => ['required', 'string']]);
+
+            $outcome = $orchestrator->handle($question, $accessToken, $this->answer);
+        }
 
         if (! $outcome->success) {
             Flux::toast(text: $outcome->message, variant: 'danger');
@@ -166,9 +213,10 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
         $this->totalQuestions = count($session->questionIds);
         $this->index = 0;
         $this->answer = '';
+        $this->clozeInputs = [];
         $this->hintLevel = 0;
         $this->sessionRun++;
-        unset($this->question);
+        unset($this->question, $this->isClozeQuestion, $this->clozeSegments);
     }
 
     private function advance(): void
@@ -182,7 +230,8 @@ new #[Layout('layouts::app')] #[Title('Estudar')] class extends Component
         }
 
         $this->answer = '';
+        $this->clozeInputs = [];
         $this->hintLevel = 0;
-        unset($this->question);
+        unset($this->question, $this->isClozeQuestion, $this->clozeSegments);
     }
 };

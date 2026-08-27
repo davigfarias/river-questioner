@@ -1,5 +1,12 @@
 <x-slot:breadcrumb>
-    <flux:breadcrumbs>
+    <div class="flex sm:hidden items-center gap-2 min-w-0">
+        <flux:button :href="route('books')" wire:navigate variant="ghost" size="sm" icon="chevron-left" class="label-sm shrink-0">
+            Voltar
+        </flux:button>
+        <span class="font-mono text-label-sm text-primary truncate min-w-0">{{ $book->title }}</span>
+    </div>
+
+    <flux:breadcrumbs class="hidden sm:flex">
         <flux:breadcrumbs.item :href="route('books')" class="breadcrumb-item">Livros</flux:breadcrumbs.item>
         <flux:breadcrumbs.item class="breadcrumb-item-current">{{ $book->title }}</flux:breadcrumbs.item>
     </flux:breadcrumbs>
@@ -66,18 +73,27 @@
                     </summary>
 
                     <div class="p-4 pt-0 space-y-2">
-                        @forelse ($chapter->questions as $question)
-                            <div class="flex items-start justify-between gap-3 p-3 rounded-lg bg-surface border border-outline-variant" wire:key="question-{{ $question->id }}">
-                                <flux:text class="font-sans text-body-sm min-w-0 truncate">{{ $question->prompt }}</flux:text>
+                        <div wire:sort="reorderQuestions" wire:sort:group="questions-{{ $chapter->id }}" wire:sort:group-id="{{ $chapter->id }}" class="space-y-2">
+                            @forelse ($chapter->questions as $question)
+                                <div class="flex items-start justify-between gap-3 p-3 rounded-lg bg-surface border border-outline-variant" wire:key="question-{{ $question->id }}" wire:sort:item="{{ $question->id }}">
+                                    <div class="flex items-center gap-2 min-w-0">
+                                        <flux:icon.bars-3 wire:sort:handle class="size-4 text-on-surface-variant/40 shrink-0 cursor-grab" />
+                                        <flux:text class="font-sans text-body-sm min-w-0 truncate">{{ $question->prompt }}</flux:text>
+                                    </div>
 
-                                <div class="flex items-center gap-1 shrink-0">
-                                    <flux:button size="sm" variant="ghost" icon="pencil" wire:click="openEditQuestion({{ $question->id }})" />
-                                    <flux:modal.trigger name="delete-question-{{ $question->id }}">
-                                        <flux:button size="sm" variant="ghost" icon="trash" />
-                                    </flux:modal.trigger>
+                                    <div class="flex items-center gap-1 shrink-0" wire:sort:ignore>
+                                        <flux:button size="sm" variant="ghost" icon="pencil" wire:click="openEditQuestion({{ $question->id }})" />
+                                        <flux:modal.trigger name="delete-question-{{ $question->id }}">
+                                            <flux:button size="sm" variant="ghost" icon="trash" />
+                                        </flux:modal.trigger>
+                                    </div>
                                 </div>
-                            </div>
+                            @empty
+                                <flux:text class="text-muted-sm">Nenhuma pergunta neste capítulo ainda.</flux:text>
+                            @endforelse
+                        </div>
 
+                        @foreach ($chapter->questions as $question)
                             <flux:modal name="delete-question-{{ $question->id }}" class="modal-narrow" wire:key="delete-question-modal-{{ $question->id }}">
                                 <div class="space-y-6">
                                     <div>
@@ -93,9 +109,7 @@
                                     </div>
                                 </div>
                             </flux:modal>
-                        @empty
-                            <flux:text class="text-muted-sm">Nenhuma pergunta neste capítulo ainda.</flux:text>
-                        @endforelse
+                        @endforeach
 
                         <flux:button size="sm" variant="ghost" icon="plus" wire:click="openCreateQuestion({{ $chapter->id }})" class="mt-2 label-sm">
                             Adicionar pergunta
@@ -186,6 +200,8 @@
         <flux:textarea wire:model="questionForm.referenceAnswer" label="Resposta padrão" rows="5" />
 
         <flux:input wire:model="questionForm.keywords" label="Palavras-chave (separadas por vírgula)" placeholder="aliança, fidelidade, pacto" description="Usadas na dica progressiva durante o estudo, em vez de revelar a resposta." />
+
+        <flux:checkbox wire:model="questionForm.isCloze" label="Modo Cloze (completar lacunas)" description="A resposta padrão vira uma frase com lacunas para preencher durante o estudo." />
 
         <div class="modal-actions">
             <flux:modal.close>

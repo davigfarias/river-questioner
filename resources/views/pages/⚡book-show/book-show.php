@@ -1,6 +1,6 @@
 <?php
 
-use App\Actions\{CreateChapter, CreateQuestion, DeleteBook, DeleteBookCover, DeleteChapter, DeleteQuestion, StoreBookCover, UpdateBook, UpdateChapter, UpdateQuestion};
+use App\Actions\{CreateChapter, CreateQuestion, DeleteBook, DeleteBookCover, DeleteChapter, DeleteQuestion, RefreshClozeBlanks, ReorderQuestion, StoreBookCover, UpdateBook, UpdateChapter, UpdateQuestion};
 use App\Livewire\Forms\{BookForm, ChapterForm, QuestionForm};
 use App\Models\{Book, Chapter, Question};
 use Flux\Flux;
@@ -192,7 +192,7 @@ new #[Layout('layouts::app')] class extends Component
         Flux::modal('question-form')->show();
     }
 
-    public function saveQuestion(CreateQuestion $createQuestion, UpdateQuestion $updateQuestion): void
+    public function saveQuestion(CreateQuestion $createQuestion, UpdateQuestion $updateQuestion, RefreshClozeBlanks $refreshClozeBlanks): void
     {
         $this->questionForm->validate();
 
@@ -202,6 +202,14 @@ new #[Layout('layouts::app')] class extends Component
 
         if (! $outcome->success) {
             Flux::toast(text: $outcome->message, variant: 'danger');
+
+            return;
+        }
+
+        $clozeOutcome = $refreshClozeBlanks->handle($outcome->data);
+
+        if (! $clozeOutcome->success) {
+            Flux::toast(text: $clozeOutcome->message, variant: 'danger');
 
             return;
         }
@@ -219,6 +227,17 @@ new #[Layout('layouts::app')] class extends Component
             Flux::toast(text: $outcome->message, variant: 'danger');
 
             return;
+        }
+
+        $this->refreshChapters();
+    }
+
+    public function reorderQuestions(int $id, int $position, int $chapterId, ReorderQuestion $reorderQuestion): void
+    {
+        $outcome = $reorderQuestion->handle($this->findChapter($chapterId), $this->findQuestion($id), $position);
+
+        if (! $outcome->success) {
+            Flux::toast(text: $outcome->message, variant: 'danger');
         }
 
         $this->refreshChapters();

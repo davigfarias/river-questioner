@@ -36,4 +36,21 @@ class QuestionAttemptFactory extends Factory
             'skipped' => true,
         ]);
     }
+
+    /**
+     * A recorded cloze attempt.
+     *
+     * @param  array<int, array{index: int, expected: string, given: string, correct: bool}>  $blanks
+     */
+    public function cloze(array $blanks): static
+    {
+        $correct = count(array_filter($blanks, fn (array $blank): bool => $blank['correct']));
+
+        return $this->state([
+            'answer_text' => implode(', ', array_column($blanks, 'given')),
+            'score' => $blanks === [] ? 100 : (int) round($correct / count($blanks) * 100),
+            'cloze_blanks' => $blanks,
+            'skipped' => false,
+        ]);
+    }
 }

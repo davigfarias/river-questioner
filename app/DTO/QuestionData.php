@@ -10,5 +10,6 @@ final readonly class QuestionData
         public string $prompt,
         public string $referenceAnswer,
         public ?string $keywords,
+        public bool $isCloze = false,
     ) {}
 }

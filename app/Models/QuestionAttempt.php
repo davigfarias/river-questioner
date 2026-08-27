@@ -17,12 +17,13 @@ use Illuminate\Support\Carbon;
  * @property int $access_token_id
  * @property string|null $answer_text
  * @property int|null $score
+ * @property array<int, array{index: int, expected: string, given: string, correct: bool}>|null $cloze_blanks
  * @property bool $skipped
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
 #[UseFactory(QuestionAttemptFactory::class)]
-#[Fillable(['question_id', 'access_token_id', 'answer_text', 'score', 'skipped'])]
+#[Fillable(['question_id', 'access_token_id', 'answer_text', 'score', 'cloze_blanks', 'skipped'])]
 class QuestionAttempt extends Model
 {
     /** @use HasFactory<QuestionAttemptFactory> */
@@ -32,6 +33,7 @@ class QuestionAttempt extends Model
     {
         return [
             'score' => 'integer',
+            'cloze_blanks' => 'array',
             'skipped' => 'boolean',
         ];
     }

@@ -17,12 +17,14 @@ use Illuminate\Support\Carbon;
  * @property string $prompt
  * @property string $reference_answer
  * @property string|null $keywords
+ * @property bool $is_cloze
+ * @property array<int, int>|null $cloze_blank_indices
  * @property int $position
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  */
 #[UseFactory(QuestionFactory::class)]
-#[Fillable(['chapter_id', 'prompt', 'reference_answer', 'keywords', 'position'])]
+#[Fillable(['chapter_id', 'prompt', 'reference_answer', 'keywords', 'is_cloze', 'cloze_blank_indices', 'position'])]
 class Question extends Model
 {
     /** @use HasFactory<QuestionFactory> */
@@ -31,6 +33,8 @@ class Question extends Model
     protected function casts(): array
     {
         return [
+            'is_cloze' => 'boolean',
+            'cloze_blank_indices' => 'array',
             'position' => 'integer',
         ];
     }
